@@ -1,5 +1,6 @@
-"students": [
-    {
+{
+    "students": [
+        {
             "id": 1,
             "name": "Samuel Uhrík",
             "age": 12,
@@ -46,7 +47,7 @@
             "name": "Jožo Kováč",
             "age": 133,
             "iq": 35,
-                "image": "https://ipravda.sk/res/2022/03/24/thumbs/farmar-kravy-urbar-polnohospodar-clanokW.jpg"
+            "image": "https://ipravda.sk/res/2022/03/24/thumbs/farmar-kravy-urbar-polnohospodar-clanokW.jpg"
         },
         {
             "id": 8,
@@ -70,3 +71,4 @@
             "image": "https://static.hnonline.sk/images/slike/2026/02/02/o_3352208_1024.jpg"
         }
     ]
+}
