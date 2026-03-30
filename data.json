@@ -1,4 +1,4 @@
-  "students": [
+{ "students": [
         {
             "id": 1,
             "name": "Samuel Uhrík",
@@ -70,3 +70,4 @@
             "image": "https://static.hnonline.sk/images/slike/2026/02/02/o_3352208_1024.jpg"
         }
     ]
+}
