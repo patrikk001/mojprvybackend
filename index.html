@@ -12,6 +12,10 @@
         color: white;
     }
 
+    h1{
+        margin-top: 20px;
+    }
+
     #searchBar{
         margin-top: 15px;
         padding: 10px;
@@ -31,14 +35,31 @@
 
     .card{
         background-color: rgba(255,255,255,0.1);
+        backdrop-filter: blur(5px);
         border-radius: 15px;
-        padding: 10px;
+        padding: 12px;
         width: 200px;
+        transition: 0.2s;
+    }
+
+    .card:hover{
+        transform: scale(1.05);
     }
 
     img{
         width: 100%;
         border-radius: 10px;
+    }
+
+    .name{
+        font-weight: bold;
+        margin-top: 10px;
+        font-size: 16px;
+    }
+
+    .info{
+        font-size: 14px;
+        margin-top: 5px;
     }
 </style>
 </head>
@@ -70,12 +91,15 @@ function zobraz(studenti){
         img.src = student.image
 
         const name = document.createElement("div")
+        name.className = "name"
         name.textContent = student.name
 
         const age = document.createElement("div")
+        age.className = "info"
         age.textContent = "Vek: " + student.age
 
         const iq = document.createElement("div")
+        iq.className = "info"
         iq.textContent = "IQ: " + student.iq
 
         card.appendChild(img)
