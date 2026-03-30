@@ -6,7 +6,7 @@ CORS(app)
 
 databaza = {
     "students": [
-       {
+    {
             "id": 1,
             "name": "Samuel Uhrík",
             "age": 12,
