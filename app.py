@@ -1,12 +1,10 @@
-from flask import Flask, jsonify
-from flask_cors import CORS
+from flask import Flask, render_template
 
 app = Flask(__name__)
-CORS(app)
 
 databaza = {
     "students": [
-    {
+        {
             "id": 1,
             "name": "Samuel Uhrík",
             "age": 12,
@@ -53,7 +51,7 @@ databaza = {
             "name": "Jožo Kováč",
             "age": 133,
             "iq": 35,
-                "image": "https://ipravda.sk/res/2022/03/24/thumbs/farmar-kravy-urbar-polnohospodar-clanokW.jpg"
+            "image": "https://ipravda.sk/res/2022/03/24/thumbs/farmar-kravy-urbar-polnohospodar-clanokW.jpg"
         },
         {
             "id": 8,
@@ -79,9 +77,9 @@ databaza = {
     ]
 }
 
-@app.route("/api")
-def api():
-    return jsonify(databaza)
+@app.route("/")
+def home():
+    return render_template("index.html", students=databaza["students"])
 
 if __name__ == "__main__":
     app.run(debug=True)
