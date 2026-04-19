@@ -2,132 +2,147 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<title>Študenti z API</title>
+<title>Študenti + AI</title>
 
 <style>
-    body{
-        font-family: Arial, sans-serif;
-        text-align: center;
-        background: linear-gradient(135deg, rgb(0,100,150), rgb(0,180,255));
-        color: white;
-    }
+body{
+    font-family: Arial;
+    text-align: center;
+    background: linear-gradient(135deg, #006464, #00b4ff);
+    color: white;
+}
 
-    h1{
-        margin-top: 20px;
-    }
+#searchBar{
+    padding: 10px;
+    width: 250px;
+    border-radius: 8px;
+    border: none;
+    margin-top: 10px;
+}
 
-    #searchBar{
-        margin-top: 15px;
-        padding: 10px;
-        width: 250px;
-        font-size: 16px;
-        border-radius: 8px;
-        border: none;
-    }
+#container{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 25px;
+}
 
-    #mojDivVJs{
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
-        margin-top: 30px;
-    }
+.card{
+    width: 200px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 10px;
+}
 
-    .card{
-        background-color: rgba(255,255,255,0.1);
-        backdrop-filter: blur(5px);
-        border-radius: 15px;
-        padding: 12px;
-        width: 200px;
-        transition: 0.2s;
-    }
+.card img{
+    width: 100%;
+    border-radius: 10px;
+}
 
-    .card:hover{
-        transform: scale(1.05);
-    }
+/* CHAT */
+#chatBox{
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 300px;
+    background: rgba(0,0,0,0.7);
+    padding: 10px;
+    border-radius: 10px;
+}
 
-    img{
-        width: 100%;
-        border-radius: 10px;
-    }
+#messages{
+    height: 200px;
+    overflow-y: auto;
+    text-align: left;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
 
-    .name{
-        font-weight: bold;
-        margin-top: 10px;
-        font-size: 16px;
-    }
-
-    .info{
-        font-size: 14px;
-        margin-top: 5px;
-    }
+#chatInput{
+    width: 70%;
+}
 </style>
 </head>
 
 <body>
 
-<h1>Zoznam študentov 👨‍🎓</h1>
+<h1>Študenti 👨‍🎓</h1>
+<input id="searchBar" placeholder="Hľadať...">
 
-<input type="text" id="searchBar" placeholder="Hľadať študenta...">
+<div id="container"></div>
 
-<div id="mojDivVJs"></div>
+<!-- CHAT -->
+<div id="chatBox">
+    <div id="messages"></div>
+    <input id="chatInput" placeholder="Napíš...">
+    <button onclick="sendMessage()">OK</button>
+</div>
 
 <script>
 
-const mojDivVJs = document.getElementById("mojDivVJs")
-const searchBar = document.getElementById("searchBar")
+const students = [
+    { id: 1, name: "Samuel Uhrík",    age: 12,  iq: 20,  image: "https://posvancfitness.com/wp-content/uploads/2025/06/12809_1.jpg" },
+    { id: 2, name: "Tomáš Jurčák",    age: 61,  iq: 2,   image: "https://vedanadosah.cvtisr.sk/wp-content/uploads/importovane/img/articles/x6TpkjtO-896x600.jpg" },
+    { id: 3, name: "Marko Mihalička", age: 19,  iq: 67,  image: "https://www.nanogen.sk/wp-content/uploads/2024/03/ako-muzi-riesia-kuty-vo-vlasoch-2.jpg" },
+    { id: 4, name: "Lukáš Vindiš",    age: 25,  iq: 100, image: "https://www.svet-svietidiel.sk/led-stmievatelna-solarna-poulicna-lampa-led-12w-3-2v-6000k-ip65-10000-mah-do-img-vt2259_02-fd-11.jpg" },
+    { id: 5, name: "Martin Krajčovič",age: 30,  iq: 120, image: "https://static.hnonline.sk/images/slike/2026/03/28/o_6812238_1024.jpg" },
+    { id: 6, name: "Adam Kotleba",     age: 12,  iq: 1,   image: "https://upload.wikimedia.org/wikipedia/commons/f/f1/Marian_Kotleba.jpg" },
+    { id: 7, name: "Jožo Kováč",       age: 133, iq: 35,  image: "https://ipravda.sk/res/2022/03/24/thumbs/farmar-kravy-urbar-polnohospodar-clanokW.jpg" },
+    { id: 8, name: "Janko Kráľ",       age: 19,  iq: 13,  image: "https://www.senior.sk/arte-content/uploads/2025/04/janko_kral-1.jpg" },
+    { id: 9, name: "Laco Strike",      age: 33,  iq: 66,  image: "https://cdn.banskabystrica.sk/2022/05/LACI_A2-1194x1200.jpg" },
+    { id: 10, name: "Jozef Jozefička", age: 6,   iq: 9,   image: "https://static.hnonline.sk/images/slike/2026/02/02/o_3352208_1024.jpg" }
+];
+const container = document.getElementById("container");
 
-let students = []
+function render(list){
+    container.innerHTML = "";
 
-function zobraz(studenti){
-    mojDivVJs.innerHTML = ""
-
-    studenti.forEach((student) => {
-
-        const card = document.createElement("div")
-        card.className = "card"
-
-        const img = document.createElement("img")
-        img.src = student.image
-
-        const name = document.createElement("div")
-        name.className = "name"
-        name.textContent = student.name
-
-        const age = document.createElement("div")
-        age.className = "info"
-        age.textContent = "Vek: " + student.age
-
-        const iq = document.createElement("div")
-        iq.className = "info"
-        iq.textContent = "IQ: " + student.iq
-
-        card.appendChild(img)
-        card.appendChild(name)
-        card.appendChild(age)
-        card.appendChild(iq)
-
-        mojDivVJs.appendChild(card)
-    })
+    list.forEach(s => {
+        container.innerHTML += `
+        <div class="card">
+            <img src="${s.image}">
+            <h3>${s.name}</h3>
+            <p>Vek: ${s.age}</p>
+            <p>IQ: ${s.iq}</p>
+        </div>`;
+    });
 }
 
-fetch("data.json")
-.then(res => res.json())
-.then(data => {
-    students = data.students
-    zobraz(students)
-})
+render(students);
 
-searchBar.addEventListener("input", () => {
-    const text = searchBar.value.toLowerCase()
+/* ---------------- SEARCH ---------------- */
+document.getElementById("searchBar").addEventListener("input", e => {
+    const val = e.target.value.toLowerCase();
 
-    const filtrovane = students.filter(s =>
-        s.name.toLowerCase().includes(text)
-    )
+    render(students.filter(s =>
+        s.name.toLowerCase().includes(val)
+    ));
+});
 
-    zobraz(filtrovane)
-})
+/* ---------------- CHAT ---------------- */
+const messages = document.getElementById("messages");
 
+async function sendMessage(){
+    const input = document.getElementById("chatInput");
+    const msg = input.value;
+
+    if(!msg) return;
+
+    messages.innerHTML += `<div><b>Ty:</b> ${msg}</div>`;
+    input.value = "";
+
+    const res = await fetch("/chat", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({message: msg})
+    });
+
+    const data = await res.json();
+
+    messages.innerHTML += `<div><b>AI:</b> ${data.reply}</div>`;
+    messages.scrollTop = messages.scrollHeight;
+}
 </script>
 
 </body>
