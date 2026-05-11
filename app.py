@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, jsonify
 from openai import OpenAI
 import os
+import psycopg2
 
 app = Flask(__name__)
 
+os.environ["OPENAI_API_KEY"] = ""
 # 🔐 API KEY (musí byť nastavený v systéme)
 api_key = os.getenv("OPENAI_API_KEY")
 
@@ -12,22 +14,34 @@ if not api_key:
 
 client = OpenAI(api_key=api_key)
 
-# 📚 databáza študentov
-databaza = {
-    "students": [
-        {"id": 1, "name": "Samuel Uhrík", "age": 12, "iq": 20, "image": "https://posvancfitness.com/wp-content/uploads/2025/06/12809_1.jpg"},
-        {"id": 2, "name": "Tomáš Jurčák", "age": 61, "iq": 2, "image": "https://vedanadosah.cvtisr.sk/wp-content/uploads/importovane/img/articles/x6TpkjtO-896x600.jpg"},
-        {"id": 3, "name": "Marko Mihalička", "age": 19, "iq": 67, "image": "https://www.nanogen.sk/wp-content/uploads/2024/03/ako-muzi-riesia-kuty-vo-vlasoch-2.jpg"},
-        {"id": 4, "name": "Lukáš Vindiš", "age": 25, "iq": 100, "image": "https://www.svet-svietidiel.sk/led-stmievatelna-solarna-poulicna-lampa-led-12w-3-2v-6000k-ip65-10000-mah-do-img-vt2259_02-fd-11.jpg"},
-        {"id": 5, "name": "Martin Krajčovič", "age": 30, "iq": 120, "image": "https://static.hnonline.sk/images/slike/2026/03/28/o_6812238_1024.jpg"}
-    ]
-}
-
 # 🏠 homepage
 @app.route("/")
 def home():
-    return render_template("index.html", students=databaza["students"])
+    conn = psycopg2.connect(
+        database="mojadolezitadatabaza",
+        user="mojadolezitadatabaza_user",
+        password="nbPhlHM6AlCB60m1ebluwkEwv4yf1p29",
+        host="dpg-d7ng6tugvqtc73ar66pg-a.oregon-postgres.render.com",
+        port=5432
+    )
 
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT * FROM students
+    """)
+
+    databaza = cur.fetchall()
+    
+def sort_users():
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM students ORDER BY name ASC")
+    databaza = cur.fetchall()
+    cur.close()
+    return jsonify(databaza)
+    print(databaza)
+
+    return render_template("index.html", students=databaza)
 
 # 🤖 AI CHAT
 @app.route("/chat", methods=["POST"])
@@ -46,7 +60,7 @@ def chat():
                     "content": f"""
 Si AI chatbot pre školskú stránku.
 Používaj tieto dáta o študentoch:
-{databaza['students']}
+
 
 Ak odpoveď nevieš z dát, povedz:
 "Neviem z dostupných údajov."
