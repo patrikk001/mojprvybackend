@@ -5,19 +5,15 @@ import psycopg2
 
 app = Flask(__name__)
 
+# 🔐 OPENAI
 os.environ["OPENAI_API_KEY"] = ""
-# 🔐 API KEY (musí byť nastavený v systéme)
 api_key = os.getenv("OPENAI_API_KEY")
-
-if not api_key:
-    print("❌ CHYBA: OPENAI_API_KEY nie je nastavený!")
 
 client = OpenAI(api_key=api_key)
 
-# 🏠 homepage
-@app.route("/")
-def home():
-    conn = psycopg2.connect(
+# ---------------- DATABASE ----------------
+def get_connection():
+    return psycopg2.connect(
         database="mojadolezitadatabaza",
         user="mojadolezitadatabaza_user",
         password="nbPhlHM6AlCB60m1ebluwkEwv4yf1p29",
@@ -25,31 +21,62 @@ def home():
         port=5432
     )
 
+# ---------------- HOME ----------------
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+# ---------------- SORT STUDENTS ----------------
+@app.route("/students")
+def get_students():
+
+    sort = request.args.get("sort")
+
+    conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT * FROM students
-    """)
+    # BONUS: viac variantov zoraďovania
+    if sort == "age_desc":
+        query = "SELECT * FROM students ORDER BY age DESC"
 
-    databaza = cur.fetchall()
-    
-def sort_users():
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM students ORDER BY name ASC")
-    databaza = cur.fetchall()
+    elif sort == "age_asc":
+        query = "SELECT * FROM students ORDER BY age ASC"
+
+    elif sort == "name":
+        query = "SELECT * FROM students ORDER BY name ASC"
+
+    elif sort == "iq":
+        query = "SELECT * FROM students ORDER BY iq DESC"
+
+    else:
+        query = "SELECT * FROM students"
+
+    cur.execute(query)
+
+    rows = cur.fetchall()
+
+    students = []
+
+    for s in rows:
+        students.append({
+            "id": s[0],
+            "name": s[1],
+            "age": s[2],
+            "iq": s[3],
+            "image": s[4]
+        })
+
     cur.close()
-    return jsonify(databaza)
-    print(databaza)
+    conn.close()
 
-    return render_template("index.html", students=databaza)
+    return jsonify(students)
 
-# 🤖 AI CHAT
+# ---------------- CHAT ----------------
 @app.route("/chat", methods=["POST"])
 def chat():
+
     data = request.get_json()
     user_msg = data.get("message")
-
-    print("➡ USER:", user_msg)
 
     try:
         response = client.chat.completions.create(
@@ -57,13 +84,8 @@ def chat():
             messages=[
                 {
                     "role": "system",
-                    "content": f"""
+                    "content": """
 Si AI chatbot pre školskú stránku.
-Používaj tieto dáta o študentoch:
-
-
-Ak odpoveď nevieš z dát, povedz:
-"Neviem z dostupných údajov."
 """
                 },
                 {"role": "user", "content": user_msg}
@@ -71,15 +93,12 @@ Ak odpoveď nevieš z dát, povedz:
         )
 
         reply = response.choices[0].message.content
-        print("🤖 AI:", reply)
 
     except Exception as e:
-        print("❌ OPENAI ERROR:", e)
         reply = f"Chyba AI: {e}"
 
     return jsonify({"reply": reply})
 
-
-# 🚀 start server
+# ---------------- START ----------------
 if __name__ == "__main__":
     app.run(debug=True)
