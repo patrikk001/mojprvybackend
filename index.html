@@ -1,148 +1,88 @@
 <!DOCTYPE html>
 <html lang="sk">
 <head>
-<meta charset="UTF-8">
-<title>Študenti + AI</title>
-
-<style>
-body{
-    font-family: Arial;
-    text-align: center;
-    background: linear-gradient(135deg, #006464, #00b4ff);
-    color: white;
-}
-
-#searchBar{
-    padding: 10px;
-    width: 250px;
-    border-radius: 8px;
-    border: none;
-    margin-top: 10px;
-}
-
-#container{
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 25px;
-}
-
-.card{
-    width: 200px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 12px;
-    padding: 10px;
-}
-
-.card img{
-    width: 100%;
-    border-radius: 10px;
-}
-
-/* CHAT */
-#chatBox{
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 300px;
-    background: rgba(0,0,0,0.7);
-    padding: 10px;
-    border-radius: 10px;
-}
-
-#messages{
-    height: 200px;
-    overflow-y: auto;
-    text-align: left;
-    font-size: 14px;
-    margin-bottom: 5px;
-}
-
-#chatInput{
-    width: 70%;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Študentská AI Databáza</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 80%; max-width: 800px; margin-top: 20px; }
+        .student-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .card { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+        .card img { width: 100%; h-eight: 120px; object-fit: cover; border-radius: 5px; }
+        
+        #chat-box { width: 100%; max-width: 600px; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); overflow: hidden; }
+        #messages { height: 300px; overflow-y: auto; padding: 15px; border-bottom: 1px solid #ddd; display: flex; flex-direction: column; }
+        .msg { margin-bottom: 10px; padding: 8px 12px; border-radius: 15px; max-width: 80%; }
+        .user { align-self: flex-end; background: #007bff; color: white; }
+        .ai { align-self: flex-start; background: #e9e9eb; color: black; }
+        
+        .input-area { display: flex; padding: 10px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; outline: none; }
+        button { padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 5px; }
+    </style>
 </head>
-
 <body>
 
-<h1>Študenti 👨‍🎓</h1>
-<input id="searchBar" placeholder="Hľadať...">
+<div class="container">
+    <h1>Zoznam študentov</h1>
+    <div class="student-list">
+        {% for student in students %}
+        <div class="card">
+            <img src="{{ student.image }}" alt="{{ student.name }}">
+            <p><strong>{{ student.name }}</strong></p>
+            <p>IQ: {{ student.iq }}</p>
+        </div>
+        {% endfor %}
+    </div>
 
-<div id="container"></div>
-
-<!-- CHAT -->
-<div id="chatBox">
-    <div id="messages"></div>
-    <input id="chatInput" placeholder="Napíš...">
-    <button onclick="sendMessage()">OK</button>
+    <div id="chat-box">
+        <div id="messages">
+            <div class="msg ai">Ahoj! Spýtaj sa ma niečo na študentov.</div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Napr. Kto má najvyššie IQ?">
+            <button onclick="sendMessage()">Odoslať</button>
+        </div>
+    </div>
 </div>
 
 <script>
+    async function sendMessage() {
+        const input = document.getElementById("userInput");
+        const msgText = input.value.trim();
+        if (!msgText) return;
 
-const students = [
-    { id: 1, name: "Samuel Uhrík",    age: 12,  iq: 20,  image: "https://posvancfitness.com/wp-content/uploads/2025/06/12809_1.jpg" },
-    { id: 2, name: "Tomáš Jurčák",    age: 61,  iq: 2,   image: "https://vedanadosah.cvtisr.sk/wp-content/uploads/importovane/img/articles/x6TpkjtO-896x600.jpg" },
-    { id: 3, name: "Marko Mihalička", age: 19,  iq: 67,  image: "https://www.nanogen.sk/wp-content/uploads/2024/03/ako-muzi-riesia-kuty-vo-vlasoch-2.jpg" },
-    { id: 4, name: "Lukáš Vindiš",    age: 25,  iq: 100, image: "https://www.svet-svietidiel.sk/led-stmievatelna-solarna-poulicna-lampa-led-12w-3-2v-6000k-ip65-10000-mah-do-img-vt2259_02-fd-11.jpg" },
-    { id: 5, name: "Martin Krajčovič",age: 30,  iq: 120, image: "https://static.hnonline.sk/images/slike/2026/03/28/o_6812238_1024.jpg" },
-    { id: 6, name: "Adam Kotleba",     age: 12,  iq: 1,   image: "https://upload.wikimedia.org/wikipedia/commons/f/f1/Marian_Kotleba.jpg" },
-    { id: 7, name: "Jožo Kováč",       age: 133, iq: 35,  image: "https://ipravda.sk/res/2022/03/24/thumbs/farmar-kravy-urbar-polnohospodar-clanokW.jpg" },
-    { id: 8, name: "Janko Kráľ",       age: 19,  iq: 13,  image: "https://www.senior.sk/arte-content/uploads/2025/04/janko_kral-1.jpg" },
-    { id: 9, name: "Laco Strike",      age: 33,  iq: 66,  image: "https://cdn.banskabystrica.sk/2022/05/LACI_A2-1194x1200.jpg" },
-    { id: 10, name: "Jozef Jozefička", age: 6,   iq: 9,   image: "https://static.hnonline.sk/images/slike/2026/02/02/o_3352208_1024.jpg" }
-];
-const container = document.getElementById("container");
+        appendMessage(msgText, 'user');
+        input.value = "";
 
-function render(list){
-    container.innerHTML = "";
+        try {
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: msgText })
+            });
+            const data = await response.json();
+            appendMessage(data.reply, 'ai');
+        } catch (error) {
+            appendMessage("Chyba spojenia so serverom.", 'ai');
+        }
+    }
 
-    list.forEach(s => {
-        container.innerHTML += `
-        <div class="card">
-            <img src="${s.image}">
-            <h3>${s.name}</h3>
-            <p>Vek: ${s.age}</p>
-            <p>IQ: ${s.iq}</p>
-        </div>`;
-    });
-}
-
-render(students);
-
-/* ---------------- SEARCH ---------------- */
-document.getElementById("searchBar").addEventListener("input", e => {
-    const val = e.target.value.toLowerCase();
-
-    render(students.filter(s =>
-        s.name.toLowerCase().includes(val)
-    ));
-});
-
-/* ---------------- CHAT ---------------- */
-const messages = document.getElementById("messages");
-
-async function sendMessage(){
-    const input = document.getElementById("chatInput");
-    const msg = input.value;
-
-    if(!msg) return;
-
-    messages.innerHTML += `<div><b>Ty:</b> ${msg}</div>`;
-    input.value = "";
-
-    const res = await fetch("/chat", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({message: msg})
-    });
-
-    const data = await res.json();
-
-    messages.innerHTML += `<div><b>AI:</b> ${data.reply}</div>`;
-    messages.scrollTop = messages.scrollHeight;
-}
+    function appendMessage(text, sender) {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `msg ${sender}`;
+        msgDiv.innerText = text;
+        document.getElementById("messages").appendChild(msgDiv);
+        document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+    }
+<select id="sortSelect">
+    <option value="">Bez zoradenia</option>
+    <option value="name">Podľa mena</option>
+    <option value="age_desc">Najstarší</option>
+    <option value="age_asc">Najmladší</option>
+    <option value="iq">Najvyššie IQ</option>
+</select>
 </script>
 
 </body>
